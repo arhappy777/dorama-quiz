@@ -9,6 +9,17 @@ body {
   color: #e2e0f0;
 }
 
+@keyframes bg-slide {
+  0%, 30% { opacity: 1; background-image: url('/bg/bg1.jpg'); }
+  33%, 63% { opacity: 1; background-image: url('/bg/bg2.jpg'); }
+  66%, 96% { opacity: 1; background-image: url('/bg/bg3.jpg'); }
+  100% { opacity: 1; background-image: url('/bg/bg1.jpg'); }
+}
+
+.animate-bg-slide {
+  animation: bg-slide 18s ease-in-out infinite;
+}
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #1e1b2e; }
 ::-webkit-scrollbar-thumb { background: #a21caf; border-radius: 3px; }
