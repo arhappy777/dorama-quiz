@@ -100,4 +100,11 @@ export const questions: Question[] = [
       "Лучше без романтики 🚫",
     ],
   },
+  {
+    id: "contact",
+    title: "Куда прислать рекомендации? 📬",
+    subtitle: "Telegram, Instagram или email — что удобнее",
+    type: "text",
+    placeholder: "@username / email / instagram...",
+  },
 ];

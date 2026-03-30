@@ -17,6 +17,7 @@ export async function POST(req: Request) {
       `⭐ *Любимые дорамы:* ${answers.favorites || "не указано"}`,
       `👎 *Не нравится:* ${formatAnswer(answers.dislike)}`,
       `💕 *Романтика:* ${formatAnswer(answers.romance)}`,
+      `📬 *Контакт:* ${answers.contact || "не указано"}`,
     ];
 
     const text = lines.join("\n");
