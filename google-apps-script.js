@@ -34,16 +34,13 @@ function doPost(e) {
       logSubmission(data);
     }
 
-    // Telegram-уведомление
-    var message = buildTelegramMessage(data);
-    if (message) {
-      sendTelegram(message, data.event === "visit_end");
-    }
-
-    // Если есть ответы — отдельное сообщение с заявкой
-    if (data.event === "quiz_complete" && data.answers) {
-      var submitMsg = buildSubmitMessage(data.answers, data.source);
-      if (submitMsg) sendTelegram(submitMsg, false);
+    // Telegram — только финальное событие (одно сообщение)
+    // visit_start → только в таблицу, без TG
+    if (data.event === "visit_end" || data.event === "quiz_complete") {
+      var message = buildTelegramMessage(data);
+      if (message) {
+        sendTelegram(message, data.event === "visit_end");
+      }
     }
 
     return ContentService
@@ -348,46 +345,49 @@ function repeat(char, n) {
 function buildTelegramMessage(data) {
   var total = data.total_steps || 8;
 
-  switch (data.event) {
-    case "visit_start":
-      return [
-        "👋 *Новый визит — Dorama Quiz*",
-        "",
-        formatSourceTG(data.source),
-        "",
-        "🆔 `" + data.session_id + "`"
-      ].join("\n");
+  if (data.event === "quiz_complete") {
+    // Прошёл квиз — одно сообщение со всем
+    var lines = [
+      "🎉 *Квиз пройден!*",
+      "",
+      formatSourceTG(data.source),
+      "",
+      "⏱ Время: " + formatTime(data.time_spent_seconds)
+    ];
 
-    case "quiz_complete":
-      var completeLines = [
-        "🎉 *Квиз пройден полностью!*",
-        "",
-        formatSourceTG(data.source),
-        "",
-        "⏱ Время: " + formatTime(data.time_spent_seconds),
-        "📊 Прогресс: " + repeat("▓", total) + " " + total + "/" + total,
-        "🆔 `" + data.session_id + "`"
-      ];
-      return completeLines.join("\n");
+    // Ответы прямо в это же сообщение
+    if (data.answers) {
+      var a = data.answers;
+      lines.push("");
+      lines.push("🎭 Жанры: " + formatField(a.genres));
+      lines.push("🌈 Настроение: " + formatField(a.mood));
+      lines.push("📏 Длина: " + formatField(a.length));
+      lines.push("🌍 Страна: " + formatField(a.country));
+      lines.push("⭐ Любимые: " + (a.favorites || "—"));
+      lines.push("👎 Не нравится: " + formatField(a.dislike));
+      lines.push("💕 Романтика: " + formatField(a.romance));
+      lines.push("📬 Контакт: " + (a.contact || "—"));
+    }
 
-    case "visit_end":
-      var stepNum = data.step != null ? data.step : -1;
-      if (stepNum >= total) return ""; // квиз пройден — не дублировать
-
-      return [
-        "🚪 *Пользователь ушёл*",
-        "",
-        formatSourceTG(data.source),
-        "",
-        "📍 Остановился: *" + (data.step_name || "Intro") + "*",
-        "📊 " + progressBar(stepNum, total),
-        "⏱ Провёл: " + formatTime(data.time_spent_seconds),
-        "🆔 `" + data.session_id + "`"
-      ].join("\n");
-
-    default:
-      return "";
+    return lines.join("\n");
   }
+
+  if (data.event === "visit_end") {
+    var stepNum = data.step != null ? data.step : -1;
+    if (stepNum >= total) return ""; // квиз пройден — не дублировать
+
+    return [
+      "🚪 *Ушёл с квиза*",
+      "",
+      formatSourceTG(data.source),
+      "",
+      "📍 Остановился: *" + (data.step_name || "Intro") + "*",
+      "📊 " + progressBar(stepNum, total),
+      "⏱ Провёл: " + formatTime(data.time_spent_seconds)
+    ].join("\n");
+  }
+
+  return "";
 }
 
 /**
