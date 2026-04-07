@@ -13,12 +13,15 @@ export async function POST(req: Request) {
     const data = await req.json();
 
     // Пересылаем в GAS (сервер→сервер, без CORS проблем)
-    fetch(GAS_URL, {
+    // ВАЖНО: await обязателен — без него Vercel убивает функцию до завершения fetch
+    const gasResponse = await fetch(GAS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
       redirect: "follow",
-    }).catch((e) => console.error("GAS forward error:", e));
+    });
+
+    console.log("GAS response status:", gasResponse.status);
 
     return NextResponse.json({ ok: true });
   } catch (e) {
