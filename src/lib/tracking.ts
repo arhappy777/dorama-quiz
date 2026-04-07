@@ -112,25 +112,20 @@ function getSourceInfo(): SourceInfo {
   return source;
 }
 
-const TRACKING_URL =
-  "https://script.google.com/macros/s/AKfycbyfoP7b0-dj1WvR2nSd-k3R-Hbe9zNG-hz7piIbXzZEmY9fwfEITK5pAj7Qqk26Rm76rw/exec";
-
-/** Отправить событие в Google Apps Script (text/plain для CORS, sendBeacon для exit) */
+/** Отправить событие на /api/track → GAS (серверный прокси обходит CORS) */
 function sendTrackEvent(event: TrackEvent) {
   try {
     const body = JSON.stringify(event);
 
     if (event.event === "visit_end" && navigator.sendBeacon) {
-      // sendBeacon с text/plain — простой запрос, без preflight
       navigator.sendBeacon(
-        TRACKING_URL,
-        new Blob([body], { type: "text/plain" })
+        "/api/track",
+        new Blob([body], { type: "application/json" })
       );
     } else {
-      // text/plain обходит CORS preflight (GAS не отвечает на OPTIONS)
-      fetch(TRACKING_URL, {
+      fetch("/api/track", {
         method: "POST",
-        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
         body: body,
         keepalive: event.event === "visit_end",
       }).catch(() => { /* fire and forget */ });
