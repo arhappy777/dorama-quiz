@@ -43,6 +43,7 @@ let sessionId: string | null = null;
 let startTime = 0;
 let lastStep = -1;
 let exitSent = false;
+let currentAnswers: Record<string, string | string[]> = {};
 
 // Названия шагов для отчёта
 const STEP_NAMES: Record<number, string> = {
@@ -163,6 +164,7 @@ export function initTracking() {
     if (exitSent) return;
     exitSent = true;
 
+    const hasAnswers = Object.keys(currentAnswers).length > 0;
     sendTrackEvent({
       event: "visit_end",
       session_id: sessionId!,
@@ -171,6 +173,7 @@ export function initTracking() {
       step_name: STEP_NAMES[lastStep] ?? `Step ${lastStep}`,
       total_steps: 8,
       time_spent_seconds: Math.round((Date.now() - startTime) / 1000),
+      ...(hasAnswers ? { answers: currentAnswers } : {}),
     });
   };
 
@@ -185,6 +188,11 @@ export function trackStep(step: number) {
   if (!sessionId) return;
   lastStep = step;
   exitSent = false; // сбросить, чтобы exit отправился с актуальным шагом
+}
+
+/** Обновить текущие ответы (для отправки при выходе) */
+export function trackAnswers(answers: Record<string, string | string[]>) {
+  currentAnswers = answers;
 }
 
 /** Вызвать при полном завершении квиза (с ответами) */

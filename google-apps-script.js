@@ -376,7 +376,7 @@ function buildTelegramMessage(data) {
     var stepNum = data.step != null ? data.step : -1;
     if (stepNum >= total) return ""; // квиз пройден — не дублировать
 
-    return [
+    var exitLines = [
       "🚪 *Ушёл с квиза*",
       "",
       formatSourceTG(data.source),
@@ -384,7 +384,29 @@ function buildTelegramMessage(data) {
       "📍 Остановился: *" + (data.step_name || "Intro") + "*",
       "📊 " + progressBar(stepNum, total),
       "⏱ Провёл: " + formatTime(data.time_spent_seconds)
-    ].join("\n");
+    ];
+
+    // Частичные ответы — что успел выбрать
+    if (data.answers) {
+      var a = data.answers;
+      var partial = [];
+      if (a.genres) partial.push("🎭 " + formatField(a.genres));
+      if (a.mood) partial.push("🌈 " + formatField(a.mood));
+      if (a.length) partial.push("📏 " + formatField(a.length));
+      if (a.country) partial.push("🌍 " + formatField(a.country));
+      if (a.favorites) partial.push("⭐ " + a.favorites);
+      if (a.dislike) partial.push("👎 " + formatField(a.dislike));
+      if (a.romance) partial.push("💕 " + formatField(a.romance));
+      if (a.contact) partial.push("📬 " + a.contact);
+
+      if (partial.length > 0) {
+        exitLines.push("");
+        exitLines.push("*Успел выбрать:*");
+        exitLines = exitLines.concat(partial);
+      }
+    }
+
+    return exitLines.join("\n");
   }
 
   return "";

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { questions, loc, locOptions, type Question } from "@/lib/questions";
 import { useI18n } from "@/lib/i18n";
 import { QuestionCard } from "./QuestionCard";
-import { initTracking, trackStep, trackComplete } from "@/lib/tracking";
+import { initTracking, trackStep, trackComplete, trackAnswers } from "@/lib/tracking";
 
 export function Quiz() {
   const { lang, t } = useI18n();
@@ -23,7 +23,11 @@ export function Quiz() {
   const progress = step >= 0 ? ((step + 1) / questions.length) * 100 : 0;
 
   function handleAnswer(questionId: string, value: string | string[]) {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+    setAnswers((prev) => {
+      const next = { ...prev, [questionId]: value };
+      trackAnswers(next);
+      return next;
+    });
   }
 
   function canNext(): boolean {
