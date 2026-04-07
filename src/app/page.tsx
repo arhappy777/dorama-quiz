@@ -1,4 +1,5 @@
 import { Quiz } from "@/components/Quiz";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function Home() {
   return (
@@ -7,6 +8,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[url('/bg/bg1.jpg')] bg-cover bg-center" />
         <div className="absolute inset-0 bg-black/60" />
       </div>
+      <LanguageSwitcher />
       <div className="relative z-10">
         <Quiz />
       </div>

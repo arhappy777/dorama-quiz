@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import type { Question } from "@/lib/questions";
+import { loc, locOptions, type Question } from "@/lib/questions";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   question: Question;
@@ -11,15 +12,21 @@ interface Props {
 }
 
 export function QuestionCard({ question, value, onChange }: Props) {
+  const { lang, t } = useI18n();
   const [otherText, setOtherText] = useState("");
+
+  const title = loc(question.title, lang);
+  const subtitle = question.subtitle ? loc(question.subtitle, lang) : undefined;
+  const placeholder = question.placeholder ? loc(question.placeholder, lang) : undefined;
+  const options = locOptions(question.options, lang);
 
   if (question.type === "text") {
     return (
-      <Card question={question}>
+      <Card title={title} subtitle={subtitle}>
         <textarea
           value={(value as string) || ""}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={question.placeholder}
+          placeholder={placeholder}
           rows={3}
           className="w-full bg-surface border border-surface-lighter rounded-xl p-4 text-white
                      placeholder-gray-500 focus:border-primary focus:ring-1 focus:ring-primary
@@ -31,9 +38,9 @@ export function QuestionCard({ question, value, onChange }: Props) {
 
   if (question.type === "single") {
     return (
-      <Card question={question}>
+      <Card title={title} subtitle={subtitle}>
         <div className="space-y-2.5">
-          {question.options?.map((opt) => (
+          {options.map((opt) => (
             <motion.button
               key={opt}
               whileTap={{ scale: 0.97 }}
@@ -51,8 +58,8 @@ export function QuestionCard({ question, value, onChange }: Props) {
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="Другое..."
-                value={value && !question.options?.includes(value as string) ? (value as string) : otherText}
+                placeholder={t("input.other")}
+                value={value && !options.includes(value as string) ? (value as string) : otherText}
                 onChange={(e) => {
                   setOtherText(e.target.value);
                   if (e.target.value) onChange(e.target.value);
@@ -78,9 +85,9 @@ export function QuestionCard({ question, value, onChange }: Props) {
   }
 
   return (
-    <Card question={question}>
+    <Card title={title} subtitle={subtitle}>
       <div className="space-y-2.5">
-        {question.options?.map((opt) => (
+        {options.map((opt) => (
           <motion.button
             key={opt}
             whileTap={{ scale: 0.97 }}
@@ -101,7 +108,7 @@ export function QuestionCard({ question, value, onChange }: Props) {
           <div className="flex gap-2">
             <input
               type="text"
-              placeholder="Другое..."
+              placeholder={t("input.other")}
               value={otherText}
               onChange={(e) => setOtherText(e.target.value)}
               onKeyDown={(e) => {
@@ -131,7 +138,7 @@ export function QuestionCard({ question, value, onChange }: Props) {
   );
 }
 
-function Card({ question, children }: { question: Question; children: React.ReactNode }) {
+function Card({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: 30 }}
@@ -140,9 +147,9 @@ function Card({ question, children }: { question: Question; children: React.Reac
       transition={{ duration: 0.3 }}
       className="bg-surface rounded-2xl p-6 border border-surface-lighter shadow-2xl"
     >
-      <h2 className="text-xl font-bold text-white mb-1">{question.title}</h2>
-      {question.subtitle && (
-        <p className="text-sm text-gray-400 mb-4">{question.subtitle}</p>
+      <h2 className="text-xl font-bold text-white mb-1">{title}</h2>
+      {subtitle && (
+        <p className="text-sm text-gray-400 mb-4">{subtitle}</p>
       )}
       {children}
     </motion.div>

@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
    --------------------------------------------------------------- */
 
 const GAS_URL =
-  "https://script.google.com/macros/s/AKfycbyfoP7b0-dj1WvR2nSd-k3R-Hbe9zNG-hz7piIbXzZEmY9fwfEITK5pAj7Qqk26Rm76rw/exec";
+  "https://script.google.com/macros/s/AKfycbwOnzaCuKotbpRhsBq652hTugdYxDiI71z010CFdKRwEz-4oA0akiU0o9iGgDdBbnIj2g/exec";
 
 export async function POST(req: Request) {
   try {

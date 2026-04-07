@@ -35,6 +35,7 @@ interface TrackEvent {
   step_name?: string;
   total_steps?: number;
   time_spent_seconds?: number;
+  answers?: Record<string, string | string[]>;
 }
 
 // --- State ---
@@ -165,6 +166,7 @@ export function initTracking() {
     sendTrackEvent({
       event: "visit_end",
       session_id: sessionId!,
+      source: getSourceInfo(),
       step: lastStep,
       step_name: STEP_NAMES[lastStep] ?? `Step ${lastStep}`,
       total_steps: 8,
@@ -185,17 +187,19 @@ export function trackStep(step: number) {
   exitSent = false; // сбросить, чтобы exit отправился с актуальным шагом
 }
 
-/** Вызвать при полном завершении квиза */
-export function trackComplete() {
+/** Вызвать при полном завершении квиза (с ответами) */
+export function trackComplete(answers?: Record<string, string | string[]>) {
   if (!sessionId) return;
   lastStep = 8; // чтобы exit не отправлялся (квиз пройден)
 
   sendTrackEvent({
     event: "quiz_complete",
     session_id: sessionId,
+    source: getSourceInfo(),
     step: 8,
     step_name: "Завершено",
     total_steps: 8,
     time_spent_seconds: Math.round((Date.now() - startTime) / 1000),
+    answers,
   });
 }

@@ -1,16 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { questions, type Question } from "@/lib/questions";
+import { questions, loc, locOptions, type Question } from "@/lib/questions";
+import { useI18n } from "@/lib/i18n";
 import { QuestionCard } from "./QuestionCard";
+import { initTracking, trackStep, trackComplete } from "@/lib/tracking";
 
 export function Quiz() {
+  const { lang, t } = useI18n();
   const [step, setStep] = useState(-1); // -1 = intro
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
+
+  // Tracking
+  useEffect(() => { initTracking(); }, []);
+  useEffect(() => { trackStep(step); }, [step]);
 
   const currentQ = step >= 0 ? questions[step] : null;
   const progress = step >= 0 ? ((step + 1) / questions.length) * 100 : 0;
@@ -32,15 +39,10 @@ export function Quiz() {
     setSubmitting(true);
     setError("");
     try {
-      const res = await fetch("/api/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers }),
-      });
-      if (!res.ok) throw new Error("Ошибка отправки");
+      trackComplete(answers);
       setDone(true);
     } catch {
-      setError("Не удалось отправить. Попробуй ещё раз!");
+      setError(t("error.submit"));
     } finally {
       setSubmitting(false);
     }
@@ -55,10 +57,10 @@ export function Quiz() {
       >
         <div className="text-6xl">🎉</div>
         <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          Спасибо!
+          {t("done.heading")}
         </h2>
         <p className="text-lg text-gray-300">
-          Твои ответы отправлены! Скоро подберём идеальные дорамы для тебя 🍿
+          {t("done.text")}
         </p>
       </motion.div>
     );
@@ -89,22 +91,22 @@ export function Quiz() {
           >
             <div className="text-7xl">🎬</div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Dorama Quiz
+              {t("intro.heading")}
             </h1>
             <p className="text-lg text-gray-300">
-              Ответь на несколько вопросов, и мы подберём дораму специально для тебя!
+              {t("intro.text")}
             </p>
             <button
               onClick={() => setStep(0)}
               className="px-8 py-3 bg-gradient-to-r from-primary to-accent text-white font-semibold rounded-xl
                          hover:opacity-90 transition-all shadow-lg shadow-primary/30 hover:shadow-primary/50"
             >
-              Начать ✨
+              {t("intro.start")}
             </button>
           </motion.div>
         ) : currentQ ? (
           <QuestionCard
-            key={currentQ.id}
+            key={`${currentQ.id}-${lang}`}
             question={currentQ}
             value={answers[currentQ.id]}
             onChange={(v) => handleAnswer(currentQ.id, v)}
@@ -119,7 +121,7 @@ export function Quiz() {
             onClick={() => setStep((s) => s - 1)}
             className="px-5 py-2.5 text-gray-400 hover:text-white transition-colors"
           >
-            ← Назад
+            {t("nav.back")}
           </button>
           <span className="text-sm text-gray-500">
             {step + 1} / {questions.length}
@@ -131,7 +133,7 @@ export function Quiz() {
               className="px-5 py-2.5 bg-surface-light hover:bg-surface-lighter text-white rounded-xl
                          disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
-              Далее →
+              {t("nav.next")}
             </button>
           ) : (
             <button
@@ -141,7 +143,7 @@ export function Quiz() {
                          hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all
                          shadow-lg shadow-primary/30"
             >
-              {submitting ? "Отправка..." : "Отправить 🚀"}
+              {submitting ? t("nav.submitting") : t("nav.submit")}
             </button>
           )}
         </div>
